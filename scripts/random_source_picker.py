@@ -18,12 +18,18 @@ def pick_random_sources(rss_config: Dict) -> List[Dict]:
     
     for group_name, sources in groups.items():
         # Pick a random index from 0 to len(sources)-1
+        if not sources:
+            print(f"Warning: No sources found in group {group_name}")
+            continue
+            
         random_index = random.randint(0, len(sources) - 1)
-        picked_source = sources[random_index]
+        # Create a copy to avoid modifying the original dict in memory
+        picked_source = sources[random_index].copy()
         # Add group name to the picked source info
         picked_source["group"] = group_name
         selected.append(picked_source)
-        print(f"Picked source from {group_name}: {picked_source['name']}")
+        # Print to stderr to keep stdout clean for JSON output
+        print(f"Picked source from {group_name}: {picked_source['name']}", file=sys.stderr)
     
     return selected
 
@@ -59,6 +65,6 @@ if __name__ == "__main__":
     
     # Pick random sources
     picked = pick_random_sources(config)
-    print("\nAll selected sources for today:")
-    for s in picked:
-        print(f"- {s['name']} ({s['group']}): {s['url']}")
+    
+    # Output JSON to stdout for the calling process to consume
+    print(json.dumps(picked, ensure_ascii=False, indent=2))
